@@ -110,6 +110,7 @@ open class ChatUIKitCreateThreadFragment: ChatUIKitBaseFragment<UikitFragmentThr
         arguments?.let {
             conversationId = it.getString(ChatUIKitConstant.EXTRA_CONVERSATION_ID,"")
             topicMsgId = it.getString(ChatUIKitConstant.THREAD_TOPIC_MESSAGE_ID,"")
+            sendOriginalImage = it.getBoolean(Constant.KEY_SEND_ORIGINAL_IMAGE_MESSAGE, false)
             defaultTitleBar()
             defaultTopicView()
             val title: String = it.getString(Constant.KEY_SET_TITLE, "")
@@ -464,6 +465,17 @@ open class ChatUIKitCreateThreadFragment: ChatUIKitBaseFragment<UikitFragmentThr
             return this
         }
 
+        /**
+         * Set whether to use original file to send image message
+         *
+         * @param sendOriginalImage
+         * @return
+         */
+        fun sendMessageByOriginalImage(sendOriginalImage: Boolean): Builder {
+            bundle.putBoolean(Constant.KEY_SEND_ORIGINAL_IMAGE_MESSAGE, sendOriginalImage)
+            return this
+        }
+
         fun build(): ChatUIKitCreateThreadFragment? {
             val fragment = if (customFragment != null) customFragment else ChatUIKitCreateThreadFragment()
             fragment?.let {
@@ -483,6 +495,7 @@ open class ChatUIKitCreateThreadFragment: ChatUIKitBaseFragment<UikitFragmentThr
         const val KEY_SET_TITLE = "key_set_title"
         const val KEY_SET_SUB_TITLE = "key_set_sub_title"
         const val KEY_ENABLE_BACK = "key_enable_back"
+        const val KEY_SEND_ORIGINAL_IMAGE_MESSAGE = "key_send_original_image_message"
     }
 
     companion object{
