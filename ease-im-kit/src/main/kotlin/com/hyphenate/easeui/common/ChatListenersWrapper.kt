@@ -6,6 +6,7 @@ import com.hyphenate.EMMultiDeviceListener.GROUP_CREATE
 import com.hyphenate.EMMultiDeviceListener.GROUP_DESTROY
 import com.hyphenate.EMMultiDeviceListener.GROUP_JOIN
 import com.hyphenate.EMMultiDeviceListener.GROUP_LEAVE
+import com.hyphenate.chat.EMContact
 import com.hyphenate.easeui.ChatUIKitClient
 import com.hyphenate.easeui.common.bus.ChatUIKitFlowBus
 import com.hyphenate.easeui.common.extensions.createUnsentMessage
@@ -818,6 +819,42 @@ internal class ChatListenersWrapper : ChatConnectionListener, ChatMessageListene
             for (contactListener in it) {
                 try {
                     contactListener.onFriendRequestDeclined(username)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
+
+    override fun onContactSyncStart() {
+        chatContactListener.let {
+            for (contactListener in it) {
+                try {
+                    contactListener.onContactSyncStart()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
+
+    override fun onContactSyncFinishWithError(errorCode: Int, errorMsg: String?) {
+        chatContactListener.let {
+            for (contactListener in it) {
+                try {
+                    contactListener.onContactSyncFinishWithError(errorCode, errorMsg)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
+
+    override fun onContactInfoUpdate(contact: EMContact?) {
+        chatContactListener.let {
+            for (contactListener in it) {
+                try {
+                    contactListener.onContactInfoUpdate(contact)
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
