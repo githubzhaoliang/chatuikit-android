@@ -2,9 +2,9 @@
 
 _[English](README.md) | 中文_
 
-单群聊 UIKit，是基于环信 IM SDK 的一款 UI 组件库，它提供了一些通用的 UI 组件，例如‘会话列表’、‘聊天界面’和‘联系人列表’等，开发者可根据实际业务需求通过该组件库快速地搭建自定义 IM 应用。单群聊 UIKit 中的组件在实现 UI 功能的同时，调用 IM SDK 相应的接口实现 IM 相关逻辑和数据的处理，因而开发者在 UIKit 时只需关注自身业务或个性化扩展即可。
+单群聊 UIKit，是基于环信 IM SDK 的一款 UI 组件库，它提供了一些通用的 UI 组件，例如‘会话列表’、‘聊天界面’和‘联系人列表’等，开发者可根据实际业务需求通过该组件库快速地搭建自定义 IM 应用。单群聊 UIKit 中的组件在实现 UI 功能的同时，调用 IM SDK 相应的接口实现 IM 相关逻辑和数据的处理，因而开发者在使用单群聊 UIKit 时只需关注自身业务或个性化扩展即可。
 
-本指南提供了 chat_uikit 框架在Android开发中的概述和使用示例，并介绍了此 UIKit 的各种组件和功能，让开发人员很好地了解 UIKit 的工作原理以及如何有效地使用它。
+本指南提供了单群聊 UIKit 在 Android 开发中的概述和使用示例，并介绍了单群聊 UIKit 的各种组件和功能，让开发人员很好地了解单群聊 UIKit 的工作原理以及如何有效地使用它。
 
 ## 目录
 
@@ -14,12 +14,14 @@ _[English](README.md) | 中文_
   - [开发环境](#开发环境)
   - [集成安装](#集成安装)
     - [Gradle 接入集成](#gradle-接入集成)
-      - [Gradle 7.0 之前](#gradle-70-之前)
-      - [Gradle 7.0 之后](#gradle-70-之后)
     - [Module 远程依赖](#module-远程依赖)
     - [Module 源码集成](#module-源码集成)
     - [防止代码混淆](#防止代码混淆)
-  - [UIKit 基本项目结构](#uikit-基本项目结构)
+  - [命名说明](#命名说明)
+  - [项目模块关系](#项目模块关系)
+    - [app 模块结构](#app-模块结构)
+    - [quickstart 模块结构](#quickstart-模块结构)
+  - [ease-im-kit 基本项目结构](#ease-im-kit-基本项目结构)
   - [权限要求](#权限要求)
   - [初始化及登录单群聊 UIKit](#初始化及登录单群聊-uikit)
     - [初始化](#初始化)
@@ -56,7 +58,7 @@ _[English](README.md) | 中文_
 
 在这个项目中，“app”文件夹中有一个最佳实践演示项目，供您构建自己的业务能力。
 
-如果你想体验 chat_uikit 的功能，你可以扫描以下二维码来尝试演示。
+如果你想体验单群聊 UIKit 的功能，你可以扫描以下二维码来尝试演示。
 
 ![Demo](./image/demo.png)
 
@@ -73,27 +75,6 @@ _[English](README.md) | 中文_
 单群聊 UIKit 支持 Gradle 接入和 Module 源码集成。
 
 ### Gradle 接入集成
-
-#### Gradle 7.0 之前
-
-在项目根目录的 build.gradle 或者 build.gradle.kts 文件中添加 MavenCentral 远程仓库。
-
-```kotlin
-buildscript {
-    repositories {
-        ...
-        mavenCentral()
-    }
-}
-allprojects {
-    repositories {
-        ...
-        mavenCentral()
-    }
-}
-```
-
-#### Gradle 7.0 之后
 
 在项目根目录的 `settings.gradle` 或者 `settings.gradle.kts` 文件中检查并添加 MavenCentral 远程仓库。
 
@@ -137,7 +118,7 @@ project(":ease-chat-kit").projectDir = File("../easemob-uikit-android/ease-im-ki
 2. 在 `build.gradle.kts` 文件 app/build.gradle(Module: app)中添加如下代码：
 
 ```kotlin
-//chatuikit-android
+// Chat UIKit source module
 implementation(project(mapOf("path" to ":ease-chat-kit")))
 ```
 
@@ -150,54 +131,144 @@ implementation(project(mapOf("path" to ":ease-chat-kit")))
 -dontwarn  com.hyphenate.**
 ```
 
-## UIKit 基本项目结构
+## 命名说明
+
+- `单群聊 UIKit` / `Chat UIKit`：指这套基于环信 IM SDK 的 UI 组件库产品能力。
+- `ease-im-kit`：指当前仓库中的 Android Library 源码模块，源码目录为 `ease-im-kit/`。
+- `ease-chat-kit`：指 Maven 远程依赖 artifact，即 `io.hyphenate:ease-chat-kit:x.y.z`；源码集成示例中也使用 `:ease-chat-kit` 作为接入方工程里的模块别名。
+
+## 项目模块关系
+
+当前仓库是一个 Android Gradle 多模块项目，主要包含 `app`、`quickstart` 和 `ease-im-kit` 三个模块：
+
+- `ease-im-kit`：Android Library，是单群聊 UIKit 的核心实现模块，封装 IM SDK 初始化、登录、会话、聊天、联系人、群组、子区、搜索、消息扩展、资源和通用组件。
+- `app`：完整 Demo 应用，依赖 `:ease-im-kit`，用于展示较完整的业务接入方式，包括启动页、登录、会话列表、联系人列表、我的页面、聊天页定制和子区功能。
+- `quickstart`：最小接入示例应用，依赖 `:ease-im-kit`，用于演示接入方如何初始化 UIKit、登录、退出登录并快速打开单聊页面。
+
+模块依赖关系如下：
+
+```text
+:ease-im-kit    // UIKit Library，核心 UI 和 IM 能力
+     ↑
+     ├── :app          // 完整 Demo App
+     └── :quickstart   // 最小接入示例 App
+```
+
+### app 模块结构
+
+`app` 模块位于 `app/` 目录，是完整示例工程，主要源码在 `app/src/main/kotlin/com/hyphenate/easeui/demo`。
+
+```text
+app
+├── build.gradle.kts                         // Demo App 构建配置，依赖 :ease-im-kit
+└── src/main
+    ├── AndroidManifest.xml                  // Demo App 权限、Application 和 Activity 声明
+    ├── kotlin/com/hyphenate/easeui/demo
+    │   ├── DemoApplication.kt               // 初始化 ChatUIKitClient、配置 Provider、全局监听和自定义路由
+    │   ├── MainActivity.kt                  // Demo 主页面，底部 Chat、Contacts、Me 三个 Tab
+    │   ├── ChatActivity.kt                  // 继承 UIKitChatActivity，扩展聊天页行为
+    │   ├── ChatFragment.kt                  // 继承 UIKitChatFragment，扩展聊天页菜单
+    │   ├── ChatThreadActivity.kt            // 自定义子区聊天页面
+    │   ├── ChatThreadFragment.kt            // 自定义子区聊天 Fragment
+    │   ├── base/                            // Activity 基类、生命周期管理、进度弹窗等
+    │   ├── bean/                            // Demo 数据模型
+    │   ├── login/                           // 启动、登录、我的页面相关 UI，包含 SplashActivity
+    │   ├── utils/                           // 输入框、手机号、Toast 等工具类
+    │   └── viewmodel/                       // 登录、启动页和 IM 相关 ViewModel/Repository
+    └── res                                  // Demo 页面布局、菜单、图片、主题和多语言资源
+```
+
+`app` 模块主要展示以下接入能力：
+
+- 在 `DemoApplication` 中读取 AppKey 并调用 `ChatUIKitClient.init()` 初始化 UIKit。
+- 通过 `ChatUIKitCustomActivityRoute` 将 UIKit 内置聊天页和子区页替换为 Demo 自定义页面。
+- 通过 `ChatUIKitUserProfileProvider` 提供用户昵称和头像。
+- 在 `MainActivity` 中组合 UIKit 提供的 `ChatUIKitConversationListFragment` 和 `ChatUIKitContactsListFragment`。
+- 在 `ChatActivity`、`ChatFragment` 中展示聊天页菜单、消息转发、合并转发和子区入口等定制能力。
+- 在登录相关页面中展示用户名密码、Token 和 AppServer 登录流程。
+
+### quickstart 模块结构
+
+`quickstart` 模块位于 `quickstart/` 目录，是最小可运行接入示例，主要源码在 `quickstart/src/main/java/com/easemob/quickstart`。
+
+```text
+quickstart
+├── build.gradle.kts                         // Quickstart App 构建配置，依赖 :ease-im-kit
+└── src/main
+    ├── AndroidManifest.xml                  // Quickstart App 声明，MainActivity 为启动页
+    ├── java/com/easemob/quickstart
+    │   └── MainActivity.kt                  // 初始化、登录、退出登录和打开单聊页面
+    └── res
+        ├── layout/activity_main.xml         // 用户名、密码、PeerId 和操作按钮
+        └── values/strings.xml               // 应用名和 app_key 配置项
+```
+
+`quickstart` 模块主要展示以下最小接入流程：
+
+- 在 `strings.xml` 中配置 `app_key`。
+- 在 `MainActivity.initSDK()` 中创建 `ChatOptions` 并初始化 `ChatUIKitClient`。
+- 调用 `ChatUIKitClient.login()` 完成用户名密码登录。
+- 调用 `ChatUIKitClient.logout()` 退出登录。
+- 登录后调用 `UIKitChatActivity.actionStart()` 快速打开单聊页面。
+
+## ease-im-kit 基本项目结构
+
+`ease-im-kit` 模块位于 `ease-im-kit/` 目录，是单群聊 UIKit 的核心 Library 模块，主要源码在 `ease-im-kit/src/main/kotlin/com/hyphenate/easeui`。该模块对上层应用提供可直接使用的 Activity、Fragment、View 和客户端入口，同时通过 repository、viewmodel、provider 等分层封装 IM SDK 的数据和事件处理。
 
 ```
-└── uikit
-    ├── ChatUIKitClient                                   // UIKit SDK 入口
+└── ease-im-kit                                      // UIKit Library 模块
+    ├── ChatUIKitClient                             // UIKit SDK 入口
     ├── ChatUIKitConfig                             // UIKit SDK 配置类
-    ├── feature                                  // UIKit 功能模块
-    │   ├── chat                                   // 聊天功能模块
-    │   │   ├── activities                            // 聊天功能模块的 Activity 文件夹
-    │   │   │   └── UIKitChatActivity                    // UIKit内置的聊天界面
-    │   │   ├── adapter                               // 聊天功能模块的适配器文件夹
-    │   │   │   └── ChatUIKitMessagesAdapter                 // 聊天功能模块的消息列表适配器
-    │   │   ├── reply                                 // 聊天功能模块的回复功能相关
-    │   │   ├── report                                // 聊天功能模块的举报消息功能相关
-    │   │   ├── chathistory                           // 聊天功能模块的消息历史功能相关
-    │   │   ├── forward                               // 聊天功能模块的消息转发功能相关
-    │   │   ├── reaction                              // 聊天功能模块的消息 Reaction 功能相关
-    │   │   ├── search                                // 聊天功能模块的搜索消息功能相关
-    │   │   ├── translation                           // 聊天功能模块的消息翻译功能相关
-    │   │   ├── viewholders                           // 聊天功能模块的消息类型 ViewHolder
-    │   │   ├── widgets                               // 聊天功能模块的自定义 View
-    │   │   └── UIKitChatFragment                      // UIKit内提供的聊天 Fragment
-    │   ├── conversation                           // 会话列表功能模块
-    │   │   ├── adapter                               // 会话列表功能模块的适配器文件夹
-    │   │   │   └── ChatUIKitConversationListAdapter         // 会话列表功能模块的会话列表适配器
-    │   │   ├── viewholders                           // 会话列表功能模块的会话类型 ViewHolder
-    │   │   ├── widgets                               // 会话列表功能模块的自定义 View
-    │   │   └── ChatUIKitConversationListFragment          // UIKit内提供的会话列表 Fragment
-    │   ├── thread                                 // 子区功能模块
-    │   │   ├── adapter                               // 子区功能模块的适配器文件夹
-    │   │   │   └── ChatUIKitThreadListAdapter           // 子区功能模块的子区列表适配器
-    │   │   ├── viewholder                            // 子区列表功能模块的子区列表类型 ViewHolder
-    │   │   ├── widgets                               // 子区列表功能模块的自定义 View
-    │   │   └── ChatUIKitThreadActivity                // UIKit内提供的子区聊天页面
-    │   ├── contact                                // 联系人列表功能模块
-    │   │   ├── adapter                               // 联系人列表功能模块的适配器文件夹
-    │   │   │   └── ChatUIKitContactListAdapter              // 联系人列表功能模块的联系人列表适配器
-    │   │   ├── viewholders                           // 联系人列表功能模块的相关 ViewHolder
-    │   │   ├── widgets                               // 联系人列表功能模块的自定义 View
-    │   │   └── ChatUIKitContactsListFragment              // UIKit内提供的联系人列表 Fragment
-    │   └── group                                  // 群组功能模块
-    ├── repository                               // UIKit SDK 数据仓库
-    ├── viewmodel                                // UIKit SDK ViewModel
-    ├── provider                                 // UIKit SDK Provider
-    ├── common                                   // UIKit SDK 公共类
-    ├── interfaces                               // UIKit SDK 接口类
-    └── widget                                   // UIKit SDK 自定义 View
+    ├── feature                                     // UIKit 功能模块
+    │   ├── chat                                    // 聊天功能模块
+    │   │   ├── activities                          // 聊天功能模块的 Activity 文件夹
+    │   │   │   └── UIKitChatActivity               // UIKit内置的聊天界面
+    │   │   ├── adapter                             // 聊天功能模块的适配器文件夹
+    │   │   │   └── ChatUIKitMessagesAdapter        // 聊天功能模块的消息列表适配器
+    │   │   ├── reply                               // 聊天功能模块的回复功能相关
+    │   │   ├── report                              // 聊天功能模块的举报消息功能相关
+    │   │   ├── chathistory                         // 聊天功能模块的消息历史功能相关
+    │   │   ├── forward                             // 聊天功能模块的消息转发功能相关
+    │   │   ├── reaction                            // 聊天功能模块的消息 Reaction 功能相关
+    │   │   ├── search                              // 聊天功能模块的搜索消息功能相关
+    │   │   ├── translation                         // 聊天功能模块的消息翻译功能相关
+    │   │   ├── viewholders                         // 聊天功能模块的消息类型 ViewHolder
+    │   │   ├── widgets                             // 聊天功能模块的自定义 View
+    │   │   └── UIKitChatFragment                   // UIKit内提供的聊天 Fragment
+    │   ├── conversation                            // 会话列表功能模块
+    │   │   ├── adapter                             // 会话列表功能模块的适配器文件夹
+    │   │   │   └── ChatUIKitConversationListAdapter // 会话列表功能模块的会话列表适配器
+    │   │   ├── viewholders                         // 会话列表功能模块的会话类型 ViewHolder
+    │   │   ├── widgets                             // 会话列表功能模块的自定义 View
+    │   │   └── ChatUIKitConversationListFragment   // UIKit内提供的会话列表 Fragment
+    │   ├── thread                                  // 子区功能模块
+    │   │   ├── adapter                             // 子区功能模块的适配器文件夹
+    │   │   │   └── ChatUIKitThreadListAdapter      // 子区功能模块的子区列表适配器
+    │   │   ├── viewholder                          // 子区列表功能模块的子区列表类型 ViewHolder
+    │   │   ├── widgets                             // 子区列表功能模块的自定义 View
+    │   │   └── ChatUIKitThreadActivity             // UIKit内提供的子区聊天页面
+    │   ├── contact                                 // 联系人列表功能模块
+    │   │   ├── adapter                             // 联系人列表功能模块的适配器文件夹
+    │   │   │   └── ChatUIKitContactListAdapter     // 联系人列表功能模块的联系人列表适配器
+    │   │   ├── viewholders                         // 联系人列表功能模块的相关 ViewHolder
+    │   │   ├── widgets                             // 联系人列表功能模块的自定义 View
+    │   │   └── ChatUIKitContactsListFragment       // UIKit内提供的联系人列表 Fragment
+    │   └── group                                   // 群组功能模块
+    ├── repository                                  // UIKit SDK 数据仓库
+    ├── viewmodel                                   // UIKit SDK ViewModel
+    ├── provider                                    // UIKit SDK Provider
+    ├── common                                      // UIKit SDK 公共类
+    ├── interfaces                                  // UIKit SDK 接口类
+    └── widget                                      // UIKit SDK 自定义 View
 ```
+
+`ease-im-kit` 模块主要提供以下能力：
+
+- 通过 `ChatUIKitClient` 统一管理 UIKit 初始化、登录、退出登录、当前用户、缓存、全局监听和自定义 Provider。
+- 在 `feature` 目录下按功能拆分聊天、会话列表、联系人、群组、子区、搜索等 UI 模块。
+- 通过 `repository` 和 `viewmodel` 封装会话、消息、联系人、群组、搜索和子区等数据请求逻辑。
+- 通过 `provider` 向业务层开放用户资料、群资料、表情信息、设置项和 Activity 路由定制能力。
+- 通过 `common`、`interfaces` 和 `widget` 提供通用工具、监听接口、权限处理、缓存、扩展函数和自定义控件。
 
 ## 权限要求
 
