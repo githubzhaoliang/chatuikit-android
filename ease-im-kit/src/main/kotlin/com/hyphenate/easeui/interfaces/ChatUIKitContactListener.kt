@@ -1,5 +1,6 @@
 package com.hyphenate.easeui.interfaces
 
+import com.hyphenate.chat.EMContact
 import com.hyphenate.easeui.common.ChatContactListener
 
 open class ChatUIKitContactListener: ChatContactListener {
@@ -12,4 +13,8 @@ open class ChatUIKitContactListener: ChatContactListener {
     override fun onFriendRequestAccepted(username: String?) {}
 
     override fun onFriendRequestDeclined(username: String?) {}
+    override fun onContactSyncStart() {}
+    override fun onContactSyncFinishWithError(errorCode: Int, errorMsg: String?) {}
+
+    override fun onContactInfoUpdate(contact: EMContact?) {}
 }
