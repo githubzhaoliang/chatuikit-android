@@ -186,16 +186,18 @@ open class ChatUIKitViewModel: ChatUIKitBaseViewModel<IHandleChatResultView>(), 
     override fun sendImageMessage(imageUri: Uri?, sendOriginalImage: Boolean) {
 
         safeInConvScope {
-            //Compatible with web and does not support heif image terminal
-            //convert heif format to jpeg general image format
-            val uri = ChatUIKitImageUtils.handleImageHeifToJpeg(
-                ChatUIKitClient.getContext(),
-                imageUri,
-                it.messageAttachmentPath
-            )
-            val message =
-                ChatMessage.createImageSendMessage(uri, sendOriginalImage, it.conversationId())
-            sendMessage(message)
+            viewModelScope.launch(Dispatchers.IO) {
+                //Compatible with web and does not support heif image terminal
+                //convert heif format to jpeg general image format
+                val uri = ChatUIKitImageUtils.handleImageHeifToJpeg(
+                    ChatUIKitClient.getContext(),
+                    imageUri,
+                    it.messageAttachmentPath
+                )
+                val message =
+                    ChatMessage.createImageSendMessage(uri, sendOriginalImage, it.conversationId())
+                sendMessage(message)
+            }
         }
     }
 
