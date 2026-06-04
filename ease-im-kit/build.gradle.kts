@@ -68,6 +68,8 @@ dependencies {
     // Coil: load image library
     implementation("io.coil-kt:coil:2.6.0")
     implementation("io.coil-kt:coil-gif:2.6.0")
+    // ExifInterface
+    implementation("androidx.exifinterface:exifinterface:1.3.7")
     // Refresh layout
     implementation("io.github.scwang90:refresh-layout-kernel:3.0.0-alpha")
     implementation("io.github.scwang90:refresh-header-material:3.0.0-alpha")
