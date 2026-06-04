@@ -70,16 +70,6 @@ object ChatUIKitClient {
     }
 
     /**
-     * Temp for test.
-     */
-    fun login(userId: String,
-              password: String,
-              onSuccess: OnSuccess = {},
-              onError: OnError = {_,_->}) {
-        client.login(userId, password, onSuccess, onError)
-    }
-
-    /**
      * Login with user object by token.
      * @param user The user object, see [ChatUIKitUser].
      * @param token The token.

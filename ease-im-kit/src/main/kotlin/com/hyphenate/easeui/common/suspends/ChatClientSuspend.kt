@@ -9,25 +9,6 @@ import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 /**
- * Suspend method for [ChatClient.login(String, String, ChatCallback)]
- * @param username
- * @param password
- * @return [ChatError]
- */
-suspend fun ChatClient.loginWithPassword(username: String, password: String): Int {
-    return suspendCoroutine { continuation ->
-        login(username, password, CallbackImpl(
-            onSuccess = {
-                continuation.resume(ChatError.EM_NO_ERROR)
-            },
-            onError = { code, error->
-                continuation.resumeWithException(ChatException(code, error))
-            }
-        ))
-    }
-}
-
-/**
  * Suspend method for [ChatClient.loginWithToken(String, String, ChatCallback)]
  * @param username
  * @param token
