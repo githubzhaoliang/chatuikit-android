@@ -45,9 +45,12 @@ import com.hyphenate.easeui.common.utils.ChatUIKitFileUtils.takePersistableUriPe
 import com.hyphenate.util.EMLog
 import com.hyphenate.util.UriUtils
 import kotlinx.coroutines.launch
+import android.graphics.Matrix
+import androidx.exifinterface.media.ExifInterface
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.io.InputStream
 import java.util.UUID
 
 object ChatUIKitImageUtils : ChatImageUtils() {
@@ -451,24 +454,95 @@ object ChatUIKitImageUtils : ChatImageUtils() {
 
     @Throws(IOException::class)
     fun imageToJpeg(context: Context?, srcImg: Uri?, destFile: File?): Uri? {
-        val bitmap: Bitmap?
-        val filePath = ChatUIKitFileUtils.getFilePath(context, srcImg)
-        bitmap = if (!TextUtils.isEmpty(filePath) && File(filePath).exists()) {
-            BitmapFactory.decodeFile(filePath, null)
-        } else {
-            getBitmapByUri(context, srcImg, null)
-        }
-        if (null != bitmap && null != destFile) {
-            if (destFile.exists()) {
-                destFile.delete()
+        var bitmap: Bitmap? = null
+        try {
+            val filePath = ChatUIKitFileUtils.getFilePath(context, srcImg)
+            bitmap = if (!TextUtils.isEmpty(filePath) && File(filePath).exists()) {
+                BitmapFactory.decodeFile(filePath, null)
+            } else {
+                getBitmapByUri(context, srcImg, null)
             }
-            val out = FileOutputStream(destFile)
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
-            out.flush()
-            out.close()
-            return Uri.fromFile(destFile)
+            // Apply EXIF orientation to fix rotated images (e.g. HEIF from iPhone)
+            if (bitmap != null) {
+                val orientation = getExifOrientation(context, srcImg, filePath)
+                bitmap = applyExifOrientation(bitmap, orientation)
+            }
+            if (null != bitmap && null != destFile) {
+                if (destFile.exists()) {
+                    destFile.delete()
+                }
+                val success = FileOutputStream(destFile).use { out ->
+                    val result = bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+                    out.flush()
+                    result
+                }
+                if (success) {
+                    return Uri.fromFile(destFile)
+                } else {
+                    EMLog.e(TAG, "imageToJpeg: compress failed")
+                    destFile.delete()
+                }
+            }
+        } catch (e: OutOfMemoryError) {
+            EMLog.e(TAG, "imageToJpeg: OutOfMemoryError: " + e.message)
+        } finally {
+            bitmap?.recycle()
         }
         return srcImg
+    }
+
+    private fun getExifOrientation(context: Context?, srcImg: Uri?, filePath: String?): Int {
+        try {
+            if (!TextUtils.isEmpty(filePath) && File(filePath!!).exists()) {
+                val exif = ExifInterface(filePath)
+                return exif.getAttributeInt(
+                    ExifInterface.TAG_ORIENTATION,
+                    ExifInterface.ORIENTATION_NORMAL
+                )
+            } else if (context != null && srcImg != null) {
+                var inputStream: InputStream? = null
+                try {
+                    inputStream = context.contentResolver.openInputStream(srcImg)
+                    if (inputStream != null) {
+                        val exif = ExifInterface(inputStream)
+                        return exif.getAttributeInt(
+                            ExifInterface.TAG_ORIENTATION,
+                            ExifInterface.ORIENTATION_NORMAL
+                        )
+                    }
+                } finally {
+                    inputStream?.close()
+                }
+            }
+        } catch (e: Exception) {
+            EMLog.e(TAG, "getExifOrientation error: " + e.message)
+        }
+        return ExifInterface.ORIENTATION_NORMAL
+    }
+
+    private fun applyExifOrientation(bitmap: Bitmap, orientation: Int): Bitmap {
+        val matrix = Matrix()
+        when (orientation) {
+            ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+            ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+            ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+            ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> matrix.preScale(-1f, 1f)
+            ExifInterface.ORIENTATION_FLIP_VERTICAL -> matrix.preScale(1f, -1f)
+            ExifInterface.ORIENTATION_TRANSPOSE -> {
+                matrix.postRotate(90f)
+                matrix.preScale(-1f, 1f)
+            }
+            ExifInterface.ORIENTATION_TRANSVERSE -> {
+                matrix.postRotate(270f)
+                matrix.preScale(-1f, 1f)
+            }
+            else -> return bitmap
+        }
+        val rotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+        if (rotated != bitmap) {
+            bitmap.recycle()
+        }
+        return rotated
     }
 
     fun handleImageHeifToJpeg(context: Context?, imageUri: Uri?,destPath:String): Uri? {
@@ -480,11 +554,16 @@ object ChatUIKitImageUtils : ChatImageUtils() {
             } else {
                 getBitmapOptions(context, imageUri)
             }
-            if ("image/heif".equals(options.outMimeType, ignoreCase = true)) {
+            if ("image/heif".equals(options.outMimeType, ignoreCase = true)
+                || "image/heic".equals(options.outMimeType, ignoreCase = true)) {
+                ChatLog.d(TAG,"handleImageHeifToJpeg:current image is heif/heic, convert to jpeg,options.outMimeType=" + options.outMimeType)
                 val fileNameByUri = UriUtils.getFileNameByUri(context, imageUri)
                 val nameWithoutExtension = removeLastExtension(fileNameByUri)
-                return imageToJpeg(context, imageUri, File(destPath,"$nameWithoutExtension.jpeg"))
+                val uniqueSuffix = UUID.randomUUID().toString().substring(0, 8)
+                return imageToJpeg(context, imageUri, File(destPath,"${nameWithoutExtension}_${uniqueSuffix}.jpeg"))
             }
+        } catch (e: OutOfMemoryError) {
+            EMLog.e(TAG,"handleImageHeifToJpeg: OutOfMemoryError: " + e.message)
         } catch (e: java.lang.Exception) {
             e.printStackTrace()
             EMLog.e(TAG,"handleImageHeifToJpeg:" + e.message)
@@ -493,8 +572,8 @@ object ChatUIKitImageUtils : ChatImageUtils() {
         return imageUri
     }
 
-    fun removeLastExtension(str: String): String? {
-        if (TextUtils.isEmpty(str)) {
+    fun removeLastExtension(str: String?): String {
+        if (str.isNullOrEmpty()) {
             return UUID.randomUUID().toString()
         }
         val lastDotIndex = str.lastIndexOf('.')

@@ -2,9 +2,9 @@
 
 _English | [中文](README.zh.md)_
 
-This guide gives a comprehensive overview into chat_uikit. The new chat_uikit is intended to provide developers with an efficient, plug-and-play, and highly customizable UI component library, helping you build complete and elegant IM applications that can easily satisfy most instant messaging scenarios. Please download the demo to try it out.
+This guide gives a comprehensive overview of Chat UIKit. Chat UIKit is intended to provide developers with an efficient, plug-and-play, and highly customizable UI component library, helping you build complete and elegant IM applications that can easily satisfy most instant messaging scenarios. Please download the demo to try it out.
 
-This guide provides an overview and usage examples of the chat_uikit framework in Android development, and presents various components and functions of this UIKit, giving developers a good understanding of how chat_uikit works and how to use it efficiently.
+This guide provides an overview and usage examples of Chat UIKit in Android development, and presents various components and functions of Chat UIKit, giving developers a good understanding of how it works and how to use it efficiently.
 
 ## Table of contents
 
@@ -14,12 +14,14 @@ This guide provides an overview and usage examples of the chat_uikit framework i
   - [Development Environment](#development-environment)
   - [Installation](#installation)
     - [Integrate with Gradle](#integrate-with-gradle)
-      - [Gradle before 7.0](#gradle-before-70)
-      - [Gradle later than 7.0](#gradle-later-than-70)
     - [Module remote dependency](#module-remote-dependency)
     - [Integrate with the Module source code](#integrate-with-the-module-source-code)
     - [Prevent code obfuscation](#prevent-code-obfuscation)
-  - [Basic project structure of chat\_uikit](#basic-project-structure-of-chat_uikit)
+  - [Naming conventions](#naming-conventions)
+  - [Project module relationship](#project-module-relationship)
+    - [app module structure](#app-module-structure)
+    - [quickstart module structure](#quickstart-module-structure)
+  - [Basic project structure of ease-im-kit](#basic-project-structure-of-ease-im-kit)
   - [Permission requirements](#permission-requirements)
   - [Initialize and log in to the UIKit](#initialize-and-log-in-to-the-uikit)
     - [Initialize the UIKit](#initialize-the-uikit)
@@ -57,7 +59,7 @@ This guide provides an overview and usage examples of the chat_uikit framework i
 
 In this project, there is a best-practice demonstration project in the `app` folder for you to build your own business capabilities.
 
-If you want to experience the functions of chat_uikit, you can scan the following QR code to try the demo.
+If you want to experience the functions of Chat UIKit, you can scan the following QR code to try the demo.
 
 ![Demo](./image/demo.png)
 
@@ -71,32 +73,11 @@ If you want to experience the functions of chat_uikit, you can scan the followin
 
 ## Installation
 
-The UIKit can be integrated with Gradle and module source code.
+Chat UIKit can be integrated with Gradle and module source code.
 
 ### Integrate with Gradle
 
-#### Gradle before 7.0
-
-Add the Maven remote repository in `build.gradle` or `build.gradle.kts` in the root directory of the project.
-
-```kotlin
-buildscript {
-    repositories {
-        ...
-        mavenCentral()
-    }
-}
-allprojects {
-    repositories {
-        ...
-        mavenCentral()
-    }
-}
-```
-
-#### Gradle later than 7.0
-
-Add the Maven remote repository in `settings.gradle` or `settings.gradle.kts` in the root directory of the project.
+Check and add the MavenCentral remote repository in `settings.gradle` or `settings.gradle.kts` in the root directory of the project.
 
 ```kotlin
 pluginManagement {
@@ -131,15 +112,15 @@ Acquire the Chat UIKit source code from the [GitHub repository](https://github.c
 1. Add the following code in the `settings.gradle.kts` file Project/settings.gradle.kts(Project Settings) in the root directory.
 
 ```kotlin
-include(":chat-uikit")
-project(":chat-uikit").projectDir = File("../easemob-uikit-android/ease-im-kit")
+include(":ease-chat-kit")
+project(":ease-chat-kit").projectDir = File("../easemob-uikit-android/ease-im-kit")
 ```
 
 2. Add the following code in `build.gradle.kts` (app/build.gradle(Module: app)).
 
 ```kotlin
-//chat-uikit
-implementation(project(mapOf("path" to ":chat-uikit")))
+// Chat UIKit source module
+implementation(project(mapOf("path" to ":ease-chat-kit")))
 ```
 
 ### Prevent code obfuscation
@@ -151,62 +132,146 @@ Add the following lines to `app/proguard-rules.pro` to prevent code obfuscation.
 -dontwarn  com.hyphenate.**
 ```
 
-## Basic project structure of chat_uikit
+## Naming conventions
+
+To avoid confusion between the product name, source module name, and remote dependency name, this document uses the following naming consistently:
+
+- `Chat UIKit`: The UI component library based on the Hyphenate IM SDK.
+- `ease-im-kit`: The Android Library source module in this repository. Its source directory is `ease-im-kit/`.
+- `ease-chat-kit`: The Maven artifact name, as in `io.hyphenate:ease-chat-kit:x.y.z`. The source integration example also uses `:ease-chat-kit` as the module alias in the integrating app project.
+
+## Project module relationship
+
+This repository is an Android Gradle multi-module project. It mainly contains the `app`, `quickstart`, and `ease-im-kit` modules:
+
+- `ease-im-kit`: An Android Library module and the core implementation of Chat UIKit. It wraps IM SDK initialization, login, conversations, chat, contacts, groups, message threads, search, message extensions, resources, and common UI components.
+- `app`: A complete demo application that depends on `:ease-im-kit`. It demonstrates a fuller business integration, including splash, login, conversation list, contact list, profile page, chat customization, and message thread features.
+- `quickstart`: A minimal integration sample application that depends on `:ease-im-kit`. It shows how to initialize the UIKit, log in, log out, and quickly open a one-to-one chat page.
+
+The module dependency relationship is as follows:
+
+```text
+:ease-im-kit    // UIKit Library, core UI and IM capabilities
+     ↑
+     ├── :app          // Complete demo app
+     └── :quickstart   // Minimal integration sample app
+```
+
+### app module structure
+
+The `app` module is located in the `app/` directory. It is a complete sample project, and its main source code is under `app/src/main/kotlin/com/hyphenate/easeui/demo`.
+
+```text
+app
+├── build.gradle.kts                         // Demo app build configuration, depends on :ease-im-kit
+└── src/main
+    ├── AndroidManifest.xml                  // Demo app permissions, Application, and Activity declarations
+    ├── kotlin/com/hyphenate/easeui/demo
+    │   ├── DemoApplication.kt               // Initializes ChatUIKitClient, providers, global listeners, and custom routes
+    │   ├── MainActivity.kt                  // Main demo page with Chat, Contacts, and Me tabs
+    │   ├── ChatActivity.kt                  // Extends UIKitChatActivity to customize chat behavior
+    │   ├── ChatFragment.kt                  // Extends UIKitChatFragment to customize the chat menu
+    │   ├── ChatThreadActivity.kt            // Custom message thread chat page
+    │   ├── ChatThreadFragment.kt            // Custom message thread chat fragment
+    │   ├── base/                            // Activity base classes, lifecycle management, progress dialogs
+    │   ├── bean/                            // Demo data models
+    │   ├── login/                           // Splash, login, and profile UI, including SplashActivity
+    │   ├── utils/                           // EditText, phone number, Toast, and other utilities
+    │   └── viewmodel/                       // Login, splash, and IM-related ViewModels/Repository
+    └── res                                  // Demo layouts, menus, images, themes, and localized resources
+```
+
+The `app` module demonstrates these integration capabilities:
+
+- Reads the AppKey in `DemoApplication` and calls `ChatUIKitClient.init()` to initialize the UIKit.
+- Uses `ChatUIKitCustomActivityRoute` to replace the UIKit built-in chat and thread pages with demo-specific pages.
+- Uses `ChatUIKitUserProfileProvider` to provide user nicknames and avatars.
+- Combines the UIKit-provided `ChatUIKitConversationListFragment` and `ChatUIKitContactsListFragment` in `MainActivity`.
+- Demonstrates chat page menu customization, message forwarding, combined forwarding, and message thread entry points in `ChatActivity` and `ChatFragment`.
+- Demonstrates username/password, token, and AppServer login flows in the login pages.
+
+### quickstart module structure
+
+The `quickstart` module is located in the `quickstart/` directory. It is a minimal runnable integration sample, and its main source code is under `quickstart/src/main/java/com/easemob/quickstart`.
+
+```text
+quickstart
+├── build.gradle.kts                         // Quickstart app build configuration, depends on :ease-im-kit
+└── src/main
+    ├── AndroidManifest.xml                  // Quickstart app declaration, MainActivity is the launcher page
+    ├── java/com/easemob/quickstart
+    │   └── MainActivity.kt                  // Initialization, login, logout, and opening a one-to-one chat page
+    └── res
+        ├── layout/activity_main.xml         // Username, password, PeerId, and action buttons
+        └── values/strings.xml               // App name and app_key configuration
+```
+
+The `quickstart` module demonstrates the minimal integration flow:
+
+- Configure `app_key` in `strings.xml`.
+- Create `ChatOptions` and initialize `ChatUIKitClient` in `MainActivity.initSDK()`.
+- Call `ChatUIKitClient.login()` to log in with username and password.
+- Call `ChatUIKitClient.logout()` to log out.
+- After login, call `UIKitChatActivity.actionStart()` to quickly open a one-to-one chat page.
+
+## Basic project structure of ease-im-kit
+
+The `ease-im-kit` module is located in the `ease-im-kit/` directory. It is the core Library module of Chat UIKit, and its main source code is under `ease-im-kit/src/main/kotlin/com/hyphenate/easeui`. This module provides directly usable Activity, Fragment, View, and client entry points for upper-layer applications, and encapsulates IM SDK data and event handling through layers such as repository, viewmodel, and provider.
 
 ```
-└── uikit
-    ├── ChatUIKitClient                                   // UIKit SDK entry
+└── ease-im-kit                                      // UIKit Library module
+    ├── ChatUIKitClient                             // UIKit SDK entry
     ├── ChatUIKitConfig                             // UIKit SDK configuration class
-    ├── feature                                  // UIKit function module
-    │   ├── chat                                   // Chat module
-    │   │   ├── activities                            // Activity folder
-    │   │   │   └── UIKitChatActivity                  // Chat page built in the UIKit
-    │   │   ├── adapter                               // Adapter folder of the chat module
-    │   │   │   └── ChatUIKitMessagesAdapter               // Message list adapter
-    │   │   ├── controllers                           // Controller of all functions of the chat module
-    │   │   ├── pin                                   // Message pinning
-    │   │   ├── urlpreview                            // URL preview
-    │   │   ├── reply                                 // Message reply
-    │   │   ├── report                                // Message reporting
-    │   │   ├── chathistory                           // Chat history
-    │   │   ├── forward                               // Message forwarding
-    │   │   ├── reaction                              // Message reaction
-    │   │   ├── search                                // Message search
-    │   │   ├── translation                           // Message translation
-    │   │   ├── viewholders                           // Message type ViewHolder
-    │   │   ├── widgets                               // Custom view of the chat module
-    │   │   └── UIKitChatFragment                      // Chat fragment built in the UIKit
-    │   ├── conversation                           // Conversation list module
-    │   │   ├── adapter                               // Adapter folder
-    │   │   │   └── ChatUIKitConversationListAdapter       // Conversation list adapter
-    │   │   ├── viewholders                           // Conversation ViewHolder
-    │   │   ├── widgets                               // Custom view of the conversation list module
-    │   │   └── ChatUIKitConversationListFragment          // Conversation list fragment built in the UIKit
-    │   ├── thread                                 // Message thread module
-    │   │   ├── adapter                               // Adapter folder
-    │   │   │   └── ChatUIKitThreadListAdapter         // Message thread list adapter
-    │   │   ├── viewholder                            // Message thread ViewHolder 
-    │   │   ├── widgets                               // Custom view of the message thread module
-    │   │   └── ChatUIKitThreadActivity               // Thread chat page within the UIKit
-    │   ├── contact                               // Contact list module
-    │   │   ├── adapter                               // Contact list adapter folder 
-    │   │   │   └── ChatUIKitContactListAdapter            // Contact list adapter
-    │   │   ├── viewholders                           // Contact ViewHolder
-    │   │   ├── widgets                               // Custom view of the contact list module
-    │   │   └── ChatUIKitContactsListFragment              // Contact list fragment built in the UIKit
-    │   └── group                                 // Group module
-    │       ├── fragments                             // Group fragment
-    │       ├── adapter                               // Adapter folder 
-    │       │   └── ChatUIKitGroupListAdapter                // Group list adapter
-    │       ├── viewholders                           // ViewHolder   Message ViewHolder
-    │       └── ChatUIKitGroupListActivity                 // Group list UI built in the UIKit
-    ├── repository                               // UIKit SDK data repository
-    ├── viewmodel                                // UIKit SDK ViewModel
-    ├── provider                                 // UIKit SDK Provider
-    ├── common                                   // Public class of UIKit SDK
-    ├── interfaces                               // API class of UIKit SDK
-    └── widget                                   // Custom view of UIKit SDK
+    ├── feature                                     // UIKit function module
+    │   ├── chat                                    // Chat module
+    │   │   ├── activities                          // Activity folder
+    │   │   │   └── UIKitChatActivity               // Chat page built in the UIKit
+    │   │   ├── adapter                             // Adapter folder of the chat module
+    │   │   │   └── ChatUIKitMessagesAdapter        // Message list adapter
+    │   │   ├── reply                               // Message reply
+    │   │   ├── report                              // Message reporting
+    │   │   ├── chathistory                         // Chat history
+    │   │   ├── forward                             // Message forwarding
+    │   │   ├── reaction                            // Message reaction
+    │   │   ├── search                              // Message search
+    │   │   ├── translation                         // Message translation
+    │   │   ├── viewholders                         // Message type ViewHolder
+    │   │   ├── widgets                             // Custom view of the chat module
+    │   │   └── UIKitChatFragment                   // Chat fragment built in the UIKit
+    │   ├── conversation                            // Conversation list module
+    │   │   ├── adapter                             // Adapter folder
+    │   │   │   └── ChatUIKitConversationListAdapter // Conversation list adapter
+    │   │   ├── viewholders                         // Conversation ViewHolder
+    │   │   ├── widgets                             // Custom view of the conversation list module
+    │   │   └── ChatUIKitConversationListFragment   // Conversation list fragment built in the UIKit
+    │   ├── thread                                  // Message thread module
+    │   │   ├── adapter                             // Adapter folder
+    │   │   │   └── ChatUIKitThreadListAdapter      // Message thread list adapter
+    │   │   ├── viewholder                          // Message thread ViewHolder 
+    │   │   ├── widgets                             // Custom view of the message thread module
+    │   │   └── ChatUIKitThreadActivity             // Thread chat page within the UIKit
+    │   ├── contact                                 // Contact list module
+    │   │   ├── adapter                             // Contact list adapter folder 
+    │   │   │   └── ChatUIKitContactListAdapter     // Contact list adapter
+    │   │   ├── viewholders                         // Contact ViewHolder
+    │   │   ├── widgets                             // Custom view of the contact list module
+    │   │   └── ChatUIKitContactsListFragment       // Contact list fragment built in the UIKit
+    │   └── group                                   // Group module
+    ├── repository                                  // UIKit SDK data repository
+    ├── viewmodel                                   // UIKit SDK ViewModel
+    ├── provider                                    // UIKit SDK Provider
+    ├── common                                      // Public class of UIKit SDK
+    ├── interfaces                                  // API class of UIKit SDK
+    └── widget                                      // Custom view of UIKit SDK
 ```
+
+The `ease-im-kit` module mainly provides the following capabilities:
+
+- Uses `ChatUIKitClient` to centrally manage UIKit initialization, login, logout, current user, cache, global listeners, and custom providers.
+- Splits UI modules such as chat, conversation list, contacts, groups, message threads, and search under the `feature` directory.
+- Encapsulates data request logic for conversations, messages, contacts, groups, search, and message threads through `repository` and `viewmodel`.
+- Exposes user profile, group profile, emojicon information, settings, and Activity route customization capabilities to the business layer through `provider`.
+- Provides common utilities, listener interfaces, permission handling, cache, extension functions, and custom views through `common`, `interfaces`, and `widget`.
 
 ## Permission requirements
 
@@ -271,7 +336,7 @@ ChatUIKitClient.logout(unbindDeviceToken
 
 #### UIKitChatActivity
 
-The UIKit provides the `UIKitChatActivity` page. You can call the `UIKitChatActivity#actionStart` method to create the chat page.
+Chat UIKit provides the `UIKitChatActivity` page. You can call the `UIKitChatActivity#actionStart` method to create the chat page.
 
 ```kotlin
 // conversationId: 1v1 is peer's userID, group chat is groupID
@@ -279,7 +344,7 @@ The UIKit provides the `UIKitChatActivity` page. You can call the `UIKitChatActi
 UIKitChatActivity.actionStart(mContext, conversationId, chatType)
 ```
 
-The UIKitChatActivity page requests permissions, like camera permissions and voice permissions.
+The `UIKitChatActivity` page requests permissions, like camera permissions and voice permissions.
 
 #### UIKitChatFragment
 
@@ -913,7 +978,7 @@ ChatUIKitContactListLayout provides the following methods:
 
 | Method                                  | Description                                                           |
 | -------------------------------------- | ---------------------------------------------------------------- |
-| setViewModel()                    | The UIKit provides ChatUIKitContactListViewModel. You can inherit IConversationListRequest to add your own data logic. |
+| setViewModel()                    | Chat UIKit provides ChatUIKitContactListViewModel. You can inherit IConversationListRequest to add your own data logic. |
 | setListAdapter()                  | Sets a custom contact list adapter.                                    |
 | getListAdapter()                  | Gets the contact list adapter.                                         |
 | getItem()                         | Gets the data at a specific location.      |
@@ -927,7 +992,7 @@ ChatUIKitContactListLayout provides the following methods:
 
 ## Global configurations
 
-The UIKit provides global configurations which can be set during the initialization:
+Chat UIKit provides global configurations which can be set during the initialization:
 
 ```kotlin
 val avatarConfig = ChatUIKitAvatarConfig()
@@ -1068,7 +1133,7 @@ ChatUIKitClient.setGroupProfileProvider(object : ChatUIKitGroupProfileProvider {
 
 - Step 1: If the information has been cached in the memory, when information needs to be presented on pages, the UIKit will first retrieve the cached data from the memory and render the page. If no information is cached, proceed to step 2.
 - Step 2. UIKit calls the provider synchronization method to obtain information locally from the application. Developers can obtain and provide the related information from the application's local database or memory. After the information is obtained, UIKit renders the page, while caching the information.
-- Step 3. If the data obtained by the synchronization method is empty, when the list page stops sliding, UIKit will return the information required for the items visible on the current page through the asynchronous method provided by the provider after excluding cache and data provided by the synchronization method. After obtaining the corresponding information from the server, the developer provides it to UIKit through `onValueSuccess`. The UIKit refreshes the list and updates the corresponding data when receiving the data.
+- Step 3. If the data obtained by the synchronization method is empty, when the list page stops sliding, Chat UIKit will return the information required for the items visible on the current page through the asynchronous method provided by the provider after excluding cache and data provided by the synchronization method. After obtaining the corresponding information from the server, the developer provides it to Chat UIKit through `onValueSuccess`. Chat UIKit refreshes the list and updates the corresponding data when receiving the data.
 
 ### Update information cached in UIKit
 
@@ -1086,4 +1151,4 @@ ChatUIKitClient.updateGroupInfo(groups)
 
 ## Support for dark and light themes
 
-UIKit supports both light and dark themes, with the theme colors changing with the system theme. To adjust the theme colors, you can create a new `values-night` folder in the app module, copy `uikit_colors.xml` to this folder, and then modify the basic colors in it. Under the dark theme, the corresponding colors will also be changed.
+Chat UIKit supports both light and dark themes, with the theme colors changing with the system theme. To adjust the theme colors, you can create a new `values-night` folder in the app module, copy `uikit_colors.xml` to this folder, and then modify the basic colors in it. Under the dark theme, the corresponding colors will also be changed.
