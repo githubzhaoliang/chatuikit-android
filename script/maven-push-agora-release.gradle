@@ -127,14 +127,11 @@ publishing {
                 password = ossrhPassword
             }
         }
-//        maven {
-//            name = "ossrh-snapshot"
-//            url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
-//            credentials {
-//                username = ossrhUsername
-//                password = ossrhPassword
-//            }
-//        }
+        
+        maven {
+            name = 'manual'
+            url = uri("${rootProject.buildDir}/manual-maven")
+        }
     }
 }
 
