@@ -7,6 +7,7 @@ import com.hyphenate.easeui.common.ChatConversationType
 import com.hyphenate.easeui.common.ChatCursorResult
 import com.hyphenate.easeui.common.ChatError
 import com.hyphenate.easeui.common.ChatException
+import com.hyphenate.easeui.common.ChatFetchMessageOption
 import com.hyphenate.easeui.common.ChatManager
 import com.hyphenate.easeui.common.ChatMessage
 import com.hyphenate.easeui.common.ChatMessageBody
@@ -114,7 +115,7 @@ suspend fun ChatManager.deleteConversationFromServer(
 }
 
 /**
- * Suspend method for [ChatManager.asyncFetchHistoryMessage]
+ * Suspend method for [ChatManager.asyncFetchHistoryMessages]
  *
  * @param conversationId
  * @param conversationType
@@ -130,11 +131,14 @@ suspend fun ChatManager.fetchHistoryMessages(
     direction: ChatSearchDirection
 ): ChatCursorResult<ChatMessage> {
     return suspendCoroutine { continuation ->
-        asyncFetchHistoryMessage(conversationId,
+        val option = ChatFetchMessageOption().apply {
+            setDirection(direction)
+        }
+        asyncFetchHistoryMessages(conversationId,
             conversationType,
             pageSize,
             startMsgId,
-            direction,
+            option,
             ValueCallbackImpl<ChatCursorResult<ChatMessage>>(
                 onSuccess = { value ->
                     continuation.resume(value)
@@ -171,10 +175,15 @@ suspend fun ChatManager.recallChatMessage(message: ChatMessage?): Int {
  *
  * @param messageId
  * @param messageBodyModified
+ * @param ext The modified message extension. It will overwrite the previous extension information. Pass null to keep it unchanged.
  */
-suspend fun ChatManager.modifyMessage(messageId: String?, messageBodyModified: ChatMessageBody?): ChatMessage {
+suspend fun ChatManager.modifyMessage(
+    messageId: String?,
+    messageBodyModified: ChatMessageBody?,
+    ext: Map<String, Any>? = null
+): ChatMessage {
     return suspendCoroutine { continuation ->
-        asyncModifyMessage(messageId, messageBodyModified, ValueCallbackImpl<ChatMessage>(
+        asyncModifyMessage(messageId, messageBodyModified, ext, ValueCallbackImpl<ChatMessage>(
                 onSuccess = {
                     continuation.resume(it)
                 },

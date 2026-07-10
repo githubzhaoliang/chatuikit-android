@@ -99,15 +99,6 @@ internal class ChatUIKitClientImpl: IChatUIKitClient {
         ChatLog.e(TAG, "UIKIt init end")
     }
 
-    override fun login(userId: String, password: String, onSuccess: OnSuccess, onError: OnError) {
-        this.user = ChatUIKitProfile(userId)
-        ChatClient.getInstance().login(userId, password, CallbackImpl(onSuccess = {
-            cache.init()
-            cache.insertUser(user!!)
-            onSuccess.invoke()
-        }, onError))
-    }
-
     override fun login(user: ChatUIKitProfile, token: String, onSuccess: OnSuccess, onError: OnError) {
         this.user = user
         ChatClient.getInstance().loginWithToken(user.id, token, CallbackImpl(onSuccess = {

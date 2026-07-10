@@ -31,7 +31,8 @@ abstract class ChatUIKitGroupListener : ChatGroupChangeListener {
         groupId: String?,
         groupName: String?,
         decliner: String?,
-        reason: String?
+        reason: String?,
+        applicant: String?
     ) {
     }
 
@@ -49,8 +50,8 @@ abstract class ChatUIKitGroupListener : ChatGroupChangeListener {
     override fun onAdminAdded(groupId: String?, administrator: String?) {}
     override fun onAdminRemoved(groupId: String?, administrator: String?) {}
     override fun onOwnerChanged(groupId: String?, newOwner: String?, oldOwner: String?) {}
-    override fun onMemberJoined(groupId: String?, member: String?) {}
-    override fun onMemberExited(groupId: String?, member: String?) {}
+    override fun onMembersJoined(groupId: String?, members: List<String>?) {}
+    override fun onMembersExited(groupId: String?, members: List<String>?) {}
     override fun onAnnouncementChanged(groupId: String?, announcement: String?) {}
     override fun onSharedFileAdded(groupId: String?, sharedFile: ChatShareFile?) {}
     override fun onSharedFileDeleted(groupId: String?, fileId: String?) {}

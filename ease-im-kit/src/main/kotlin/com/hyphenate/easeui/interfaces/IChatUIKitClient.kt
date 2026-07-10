@@ -36,14 +36,6 @@ interface IChatUIKitClient {
     fun init(context: Context, options: ChatOptions?)
 
     /**
-     * Temp for test.
-     */
-    fun login(userId: String,
-              password: String,
-              onSuccess: OnSuccess,
-              onError: OnError)
-
-    /**
      * Login with user object by token.
      * @param user The user object, see [ChatUIKitUser].
      * @param token The token.

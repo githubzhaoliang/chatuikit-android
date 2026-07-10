@@ -11,9 +11,16 @@ import com.hyphenate.easeui.common.extensions.showToast
 import com.hyphenate.easeui.feature.chat.enums.ChatUIKitType
 import com.hyphenate.easeui.feature.chat.activities.UIKitChatActivity
 import com.hyphenate.easeui.interfaces.ChatUIKitConnectionListener
+import com.hyphenate.easeui.model.ChatUIKitProfile
 
 class MainActivity : AppCompatActivity() {
     private val binding: ActivityMainBinding by lazy { ActivityMainBinding.inflate(layoutInflater) }
+
+    // The chat token used to log in to the Chat server.
+    // In a real app you should obtain this from your own app server (the app server
+    // exchanges the user's credentials for a chat token). Replace the value below with
+    // a real, pre-provisioned chat token for the user.
+    private val chatToken: String = ""
 
     private val connectListener by lazy {
         object : ChatUIKitConnectionListener() {
@@ -60,10 +67,16 @@ class MainActivity : AppCompatActivity() {
 
     fun login(view: View) {
         val username = binding.etUserId.text.toString().trim()
-        val password = binding.etPassword.text.toString().trim()
-        if (username.isEmpty() || password.isEmpty()) {
-            showToast("Username or password cannot be empty!")
-            ChatLog.e(TAG, "Username or password cannot be empty!")
+        if (username.isEmpty()) {
+            showToast("Username cannot be empty!")
+            ChatLog.e(TAG, "Username cannot be empty!")
+            return
+        }
+        // Obtain the chat token before logging in. In a real app this comes from your
+        // app server; here we use the pre-provisioned token field.
+        if (chatToken.isEmpty()) {
+            showToast("Chat token cannot be empty!")
+            ChatLog.e(TAG, "Chat token cannot be empty!")
             return
         }
         if (!ChatUIKitClient.isInited()) {
@@ -71,7 +84,7 @@ class MainActivity : AppCompatActivity() {
             ChatLog.e(TAG, "Please init first!")
             return
         }
-        ChatUIKitClient.login(username, password
+        ChatUIKitClient.login(ChatUIKitProfile(username), chatToken
             , onSuccess = {
                 showToast("Login successfully!")
                 ChatLog.e(TAG, "Login successfully!")

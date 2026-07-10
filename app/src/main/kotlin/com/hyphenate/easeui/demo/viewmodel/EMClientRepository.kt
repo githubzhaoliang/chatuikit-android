@@ -71,10 +71,11 @@ class EMClientRepository {
         }
 
     /**
-     * 登录到服务器，可选择密码登录或者token登录
-     * @param userName
-     * @param pwd
-     * @param isTokenFlag
+     * 登录到服务器。
+     * @param userName 用户名
+     * @param pwd 登录凭证。当 [isTokenFlag] 为 `true` 时该值为 chat token；为 `false` 时为账号密码，
+     *            此时参考 emclient-linux 中 `EMConfigManager::fetchTokenForUser` 先用密码换取 token，再用 token 登录。
+     * @param isTokenFlag 是否直接使用 token 登录
      * @return
      */
     suspend fun loginToServer(
@@ -83,22 +84,71 @@ class EMClientRepository {
         isTokenFlag: Boolean
     ): ChatUIKitUser =
         withContext(Dispatchers.IO) {
+            // 密码登录场景：先通过 {restBaseUrl}/token 用密码换取 chat token（参考 fetchTokenForUser），
+            // 不再把原始密码传给 SDK，登录统一走 token 通道。
+            val token = if (isTokenFlag) pwd else fetchTokenForUser(userName, pwd)
             suspendCoroutine { continuation ->
-                if (isTokenFlag) {
-                    ChatUIKitClient.login(ChatUIKitProfile(userName), pwd, onSuccess = {
-                        successForCallBack(continuation)
-                    }, onError = { code, error ->
-                        continuation.resumeWithException(ChatException(code, error))
-                    })
-                } else {
-                    ChatUIKitClient.login(userName, pwd, onSuccess = {
-                        successForCallBack(continuation)
-                    }, onError = { code, error ->
-                        continuation.resumeWithException(ChatException(code, error))
-                    })
-                }
+                ChatUIKitClient.login(ChatUIKitProfile(userName), token, onSuccess = {
+                    successForCallBack(continuation)
+                }, onError = { code, error ->
+                    continuation.resumeWithException(ChatException(code, error))
+                })
             }
         }
+
+    /**
+     * 使用用户名 + 密码换取 chat token。
+     *
+     * 该实现参考 emclient-linux 中 `EMConfigManager::fetchTokenForUser`：
+     * 向 `{restBaseUrl}/token` 发起 POST 请求，body 为 `grant_type=password`，
+     * 成功后从响应 JSON 中读取 `access_token`。
+     *
+     * 注意：此方式需要客户端持有原始密码并直接访问 chat REST 服务，仅适用于示例/测试场景；
+     * 生产环境推荐由 app server 代理完成密码到 token 的换取（见 [loginFromServe]）。
+     */
+    private fun fetchTokenForUser(userName: String, password: String): String {
+        if (userName.isEmpty() || password.isEmpty()) {
+            throw ChatException(ChatError.INVALID_PARAM, "username or password is empty")
+        }
+        val baseUrl = ChatClient.getInstance().chatConfigPrivate?.getBaseUrl(true, false)
+        if (baseUrl.isNullOrEmpty()) {
+            throw ChatException(ChatError.SERVER_NOT_REACHABLE, "no matching rest base url")
+        }
+        val url = "$baseUrl/token"
+        ChatLog.d("fetchTokenForUser url : ", url)
+        try {
+            val headers: MutableMap<String, String> = HashMap()
+            headers["Content-Type"] = "application/json"
+            val request = JSONObject()
+            request.putOpt("grant_type", "password")
+            request.putOpt("username", userName)
+            request.putOpt("password", password)
+            val response = ChatHttpClientManager.httpExecute(
+                url,
+                headers,
+                request.toString(),
+                ChatHttpClientManager.Method_POST
+            )
+            val code = response.code
+            val responseInfo = response.content
+            when (code) {
+                200 -> {
+                    val token = JSONObject(responseInfo).optString("access_token")
+                    if (token.isNullOrEmpty()) {
+                        throw ChatException(ChatError.SERVER_UNKNOWN_ERROR, "access_token is empty")
+                    }
+                    return token
+                }
+                400 -> throw ChatException(ChatError.USER_AUTHENTICATION_FAILED, responseInfo)
+                404 -> throw ChatException(ChatError.USER_NOT_FOUND, responseInfo)
+                else -> throw ChatException(ChatError.SERVER_NOT_REACHABLE, responseInfo)
+            }
+        } catch (e: ChatException) {
+            throw e
+        } catch (e: Exception) {
+            throw ChatException(ChatError.NETWORK_ERROR, e.message)
+        }
+    }
 
     /**
      * 退出登录
