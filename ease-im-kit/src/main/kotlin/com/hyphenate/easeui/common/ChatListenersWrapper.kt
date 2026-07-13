@@ -59,7 +59,7 @@ internal class ChatListenersWrapper : ChatConnectionListener, ChatMessageListene
         ChatClient.getInstance().groupManager().removeGroupChangeListener(this)
         ChatClient.getInstance().contactManager().removeContactListener(this)
         ChatClient.getInstance().presenceManager().removeListener(this)
-        ChatClient.getInstance().chatroomManager().removeChatRoomListener(chatroomListener)
+        ChatClient.getInstance().chatroomManager().removeChatRoomChangeListener(chatroomListener)
         ChatClient.getInstance().removeMultiDeviceListener(this)
         ChatClient.getInstance().chatThreadManager().removeChatThreadChangeListener(this)
 
@@ -467,22 +467,28 @@ internal class ChatListenersWrapper : ChatConnectionListener, ChatMessageListene
         }
     }
 
+    override fun onRequestToJoinDeclined(p0: String?, p1: String?, p2: String?, p3: String?) {
+        
+    }
+
     override fun onRequestToJoinDeclined(
         groupId: String?,
         groupName: String?,
         decliner: String?,
-        reason: String?
+        reason: String?,
+        applicant: String?
     ) {
         chatGroupChangeListener.let {
             for (groupListener in it) {
                 try {
-                    groupListener.onRequestToJoinDeclined(groupId,groupName,decliner,reason)
+                    groupListener.onRequestToJoinDeclined(groupId,groupName,decliner,reason, applicant)
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
             }
         }
     }
+
 
     override fun onInvitationAccepted(groupId: String?, invitee: String?, reason: String?) {
         chatGroupChangeListener.let {
@@ -644,11 +650,15 @@ internal class ChatListenersWrapper : ChatConnectionListener, ChatMessageListene
         }
     }
 
-    override fun onMemberJoined(groupId: String?, member: String?) {
+    override fun onMemberJoined(p0: String?, p1: String?) {
+
+    }
+
+    override fun onMembersJoined(groupId: String?, members:List<String>) {
         chatGroupChangeListener.let {
             for (groupListener in it) {
                 try {
-                    groupListener.onMemberJoined(groupId,member)
+                    groupListener.onMembersJoined(groupId,members)
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -656,11 +666,15 @@ internal class ChatListenersWrapper : ChatConnectionListener, ChatMessageListene
         }
     }
 
-    override fun onMemberExited(groupId: String?, member: String?) {
+    override fun onMemberExited(p0: String?, p1: String?) {
+
+    }
+
+    override fun onMembersExited(groupId: String?, members: List<String>) {
         chatGroupChangeListener.let {
             for (groupListener in it) {
                 try {
-                    groupListener.onMemberExited(groupId,member)
+                    groupListener.onMembersExited(groupId,members)
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -726,24 +740,6 @@ internal class ChatListenersWrapper : ChatConnectionListener, ChatMessageListene
             for (groupListener in it) {
                 try {
                     groupListener.onGroupMemberAttributeChanged(groupId, userId, attribute, from)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-        }
-    }
-
-    override fun onRequestToJoinDeclined(
-        groupId: String?,
-        groupName: String?,
-        decliner: String?,
-        reason: String?,
-        applicant: String?
-    ) {
-        chatGroupChangeListener.let {
-            for (groupListener in it) {
-                try {
-                    groupListener.onRequestToJoinDeclined(groupId, groupName, decliner, reason, applicant)
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -915,11 +911,11 @@ internal class ChatListenersWrapper : ChatConnectionListener, ChatMessageListene
             }
         }
 
-        override fun onMemberJoined(roomId: String?, participant: String?) {
+        override fun onMemberJoined(roomId: String?, participant: String?, ext: String?) {
             chatRoomChangeListener.let {
                 for (chatroomListener in it) {
                     try {
-                        chatroomListener.onMemberJoined(roomId,participant)
+                        chatroomListener.onMemberJoined(roomId,participant,ext)
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -956,15 +952,18 @@ internal class ChatListenersWrapper : ChatConnectionListener, ChatMessageListene
             }
         }
 
+        override fun onMuteListAdded(p0: String?, p1: MutableList<String>?, p2: Long) {
+
+        }
+
         override fun onMuteListAdded(
             chatRoomId: String?,
-            mutes: MutableList<String>?,
-            expireTime: Long
+            muteInfo: Map<String, Long>?
         ) {
             chatRoomChangeListener.let {
                 for (chatroomListener in it) {
                     try {
-                        chatroomListener.onMuteListAdded(chatRoomId, mutes, expireTime)
+                        chatroomListener.onMuteListAdded(chatRoomId, muteInfo)
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }

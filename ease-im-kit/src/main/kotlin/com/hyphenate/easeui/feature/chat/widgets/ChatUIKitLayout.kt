@@ -1288,7 +1288,7 @@ class ChatUIKitLayout @JvmOverloads constructor(
             }
         }
 
-        override fun onMemberJoined(roomId: String?, participant: String?) {
+        override fun onMemberJoined(roomId: String?, participant: String?, ext: String?) {
 
         }
 

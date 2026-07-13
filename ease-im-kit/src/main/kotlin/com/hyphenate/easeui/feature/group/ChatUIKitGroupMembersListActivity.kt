@@ -58,8 +58,8 @@ open class ChatUIKitGroupMembersListActivity:ChatUIKitBaseActivity<UikitActivity
             finish()
         }
 
-        override fun onMemberJoined(groupId: String?, member: String?) {
-            ChatLog.e(TAG,"onMemberJoined $groupId $actionType $member")
+        override fun onMembersJoined(groupId: String?, members: List<String>?) {
+            ChatLog.e(TAG,"onMembersJoined $groupId $actionType $members")
             when(actionType){
                 ChatUIKitGroupMemberType.GROUP_MEMBER_NORMAL -> {
                     if (this@ChatUIKitGroupMembersListActivity.groupId == groupId ){
@@ -78,8 +78,8 @@ open class ChatUIKitGroupMembersListActivity:ChatUIKitBaseActivity<UikitActivity
 
         }
 
-        override fun onMemberExited(groupId: String?, member: String?) {
-            ChatLog.e(TAG,"onMemberExited $groupId $actionType $member")
+        override fun onMembersExited(groupId: String?, members: List<String>?) {
+            ChatLog.e(TAG,"onMembersExited $groupId $actionType $members")
             when(actionType){
                 ChatUIKitGroupMemberType.GROUP_MEMBER_NORMAL -> {
                     if (this@ChatUIKitGroupMembersListActivity.groupId == groupId ){
